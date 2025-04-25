@@ -11,12 +11,28 @@ import {
   ScrollView,
 } from 'react-native';
 
+// Import navigation types
+import { StackNavigationProp } from '@react-navigation/stack';
+// Correct the relative path to App.tsx
+import { RootStackParamList } from '../../App';
+
 // Placeholder for logo - replace with your actual logo path
-// const logo = require('../assets/heirkey-logo.png'); // Adjust the path as needed
+// const logo = require('../../assets/image/flat.png'); // Adjust the path as needed
 // Placeholder for Google icon - replace or use an icon library
 // const googleIcon = require('../../assets/google-icon.png'); // Example path
 
-const SignupScreen = () => {
+// Define Props type for the screen including navigation
+type SignupScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Signup' // Current screen name
+>;
+
+type Props = {
+  navigation: SignupScreenNavigationProp;
+};
+
+// Add navigation prop to the component
+const SignupScreen: React.FC<Props> = ({ navigation }) => {
   const [isSignup, setIsSignup] = useState(true); // State to toggle between Sign up and Log in
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,10 +46,15 @@ const SignupScreen = () => {
   const handleGetStarted = () => {
     if (isSignup) {
       // Handle Sign up logic
-      console.log('Signing up:', { name, email, password });
+      console.log('Signing up:', { name, email, password }); // Ensure state variables are in scope
+      // Add navigation after successful signup if needed
+      // navigation.navigate('PropertyList');
     } else {
       // Handle Log in logic
-      console.log('Logging in:', { email, password });
+      console.log('Logging in:', { email, password }); // Ensure state variables are in scope
+      // Navigate to PropertyList after successful login
+      // TODO: Add actual login verification before navigating
+      navigation.navigate('PropertyList');
     }
   };
 
@@ -42,14 +63,10 @@ const SignupScreen = () => {
     console.log('Signing up with Google');
   };
 
-  const toggleMode = () => {
-    setIsSignup(!isSignup);
-    // Clear fields when switching modes
-    setName('');
-    setEmail('');
-    setPassword('');
-  };
+  // toggleMode might not be needed if using navigateToLogin/Signup
+  // const toggleMode = () => { ... };
 
+  // These functions just toggle the view state within this screen
   const navigateToLogin = () => {
     setIsSignup(false);
     // Clear fields
@@ -91,7 +108,8 @@ const SignupScreen = () => {
           <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[styles.toggleButton, isSignup && styles.activeToggleButton]}
-              onPress={() => setIsSignup(true)}
+              // Use navigateToSignup for consistency, although setIsSignup(true) works
+              onPress={navigateToSignup}
               disabled={isSignup}
             >
               <Text style={[styles.toggleText, isSignup && styles.activeToggleText]}>
@@ -100,7 +118,8 @@ const SignupScreen = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.toggleButton, !isSignup && styles.activeToggleButton]}
-              onPress={() => setIsSignup(false)}
+               // Use navigateToLogin for consistency
+              onPress={navigateToLogin}
               disabled={!isSignup}
             >
               <Text style={[styles.toggleText, !isSignup && styles.activeToggleText]}>
@@ -177,6 +196,7 @@ const SignupScreen = () => {
             {isSignup ? (
               <>
                 <Text style={styles.footerText}>Already have an account? </Text>
+                {/* This TouchableOpacity calls navigateToLogin (changes state) */}
                 <TouchableOpacity onPress={navigateToLogin}>
                   <Text style={styles.footerLink}>Log in</Text>
                 </TouchableOpacity>
@@ -184,6 +204,7 @@ const SignupScreen = () => {
             ) : (
               <>
                 <Text style={styles.footerText}>Don't have an account? </Text>
+                 {/* This TouchableOpacity calls navigateToSignup (changes state) */}
                 <TouchableOpacity onPress={navigateToSignup}>
                   <Text style={styles.footerLink}>Sign up</Text>
                 </TouchableOpacity>
