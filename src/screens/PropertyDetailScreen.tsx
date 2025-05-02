@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Property } from './PropertyListingScreen';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 type PropertyDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'PropertyDetail'>;
 
@@ -31,6 +33,10 @@ const PropertyDetailScreen: React.FC<PropertyDetailScreenProps> = ({
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite);
   };
 
   return (
@@ -56,9 +62,13 @@ const PropertyDetailScreen: React.FC<PropertyDetailScreenProps> = ({
           <Image source={property.imageUrl} style={styles.propertyImage} />
           <TouchableOpacity
             style={styles.favoriteButton}
-            onPress={() => setIsFavorite(!isFavorite)}
+            onPress={toggleFavorite}
           >
-            <Text style={styles.favoriteIcon}>{isFavorite ? '♥' : '♡'}</Text>
+            {isFavorite ? (
+              <FontAwesome name="heart" size={22} style={styles.favoriteIcon} />
+            ) : (
+              <FontAwesome name="heart-o" size={22} style={styles.favoriteIcon} />
+            )}
           </TouchableOpacity>
           <View style={styles.propertyLogo}>
             <Text style={styles.logoText}>ATS</Text>

@@ -13,6 +13,9 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import BottomNavBar from '../components/BottomNavBar';
+// Import a different icon set
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Export the Property interface
 export interface Property {
@@ -113,24 +116,29 @@ const PROPERTIES_DATA: Property[] = [
 type PropertyItemProps = {
   item: Property;
   onPress: () => void;
+  onToggleFavorite: (id: string) => void;
 };
 
-const PropertyItem: React.FC<PropertyItemProps> = ({ item, onPress }) => {
-  const [isFav, setIsFav] = React.useState(item.isFavorite);
-
+const PropertyItem: React.FC<PropertyItemProps> = ({ item, onPress, onToggleFavorite }) => {
   return (
     <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
       <Image source={item.imageUrl} style={styles.itemImage} />
-      {/* Favorite Button */}
+      
+      {/* Use MaterialCommunityIcons instead */}
       <TouchableOpacity 
         style={styles.favButton} 
         onPress={(e) => {
           e.stopPropagation();
-          setIsFav(!isFav);
+          onToggleFavorite(item.id);
         }}
       >
-        <Text style={styles.favIcon}>{isFav ? '♥' : '♡'}</Text>
+        {item.isFavorite ? (
+          <MaterialCommunityIcons name="heart" size={18} color="#E74C3C" />
+        ) : (
+          <MaterialCommunityIcons name="heart-outline" size={18} color="#666666" />
+        )}
       </TouchableOpacity>
+      
       {/* Tags */}
       <View style={styles.tagsContainer}>
         {item.tags.map((tag: string, index: number) => (
@@ -139,6 +147,7 @@ const PropertyItem: React.FC<PropertyItemProps> = ({ item, onPress }) => {
           </View>
         ))}
       </View>
+      
       {/* Info */}
       <View style={styles.infoContainer}>
         <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
@@ -151,7 +160,11 @@ const PropertyItem: React.FC<PropertyItemProps> = ({ item, onPress }) => {
 type PropertyListingScreenProps = NativeStackScreenProps<RootStackParamList, 'PropertyList'>;
 
 const PropertyListingScreen: React.FC<PropertyListingScreenProps> = ({ navigation }) => {
+  console.log('Rendering PropertyListingScreen');
   const [refreshing, setRefreshing] = useState(false);
+  const [properties, setProperties] = useState<Property[]>(PROPERTIES_DATA);
+
+  console.log('Properties data:', properties);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -165,37 +178,45 @@ const PropertyListingScreen: React.FC<PropertyListingScreenProps> = ({ navigatio
     navigation.navigate('PropertyDetail', { property });
   };
 
+  const handleToggleFavorite = (id: string) => {
+    console.log('Toggle favorite for property ID:', id);
+    setProperties(prevProperties => 
+      prevProperties.map(property => 
+        property.id === id 
+          ? { ...property, isFavorite: !property.isFavorite } 
+          : property
+      )
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollViewContent}
-      >
+      <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Featured Properties</Text>
+         <TouchableOpacity
+                     onPress={() => navigation.goBack()}
+                     style={styles.backButton}
+                   >
+                     <Text style={styles.backButtonText}> ← Back</Text>
+                   </TouchableOpacity>
         </View>
         
-        <View style={styles.flatListContainer}>
-          <FlatList
-            data={PROPERTIES_DATA}
-            renderItem={({ item }) => (
-              <PropertyItem 
-                item={item} 
-                onPress={() => handlePropertyPress(item)}
-              />
-            )}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={false}
-          />
-        </View>
-      </ScrollView>
+        <FlatList
+          data={properties}
+          renderItem={({ item }) => (
+            <PropertyItem 
+              item={item} 
+              onPress={() => handlePropertyPress(item)}
+              onToggleFavorite={handleToggleFavorite}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
+      <BottomNavBar activeScreen="PropertyList" />
     </SafeAreaView>
   );
 };
@@ -205,15 +226,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  scrollViewContent: {
-    flexGrow: 1,
+  container: {
+    flex: 1,
   },
   header: {
-    marginBottom:10,
-    marginTop:40,
-    marginLeft:10,
-    // paddingHorizontal:45,
-    // paddingVertical:35,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
@@ -221,59 +238,40 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-    // marginLeft: 5,
-  },
-  flatListContainer: {
-    flex: 1,
   },
   listContainer: {
-    paddingHorizontal: 10, // Add horizontal padding for spacing between columns
-    paddingVertical: 10,
+    padding: 8,
   },
   itemContainer: {
-    flex: 1, // Take up equal space in the column
-    margin: 8, // Add margin around each item
-    borderRadius: 8,
-    backgroundColor: '#F5F5F5', // Light background for item card
-    overflow: 'hidden', // Clip image border radius
-    maxWidth: '46%', // Ensure 2 columns fit with margin
+    flex: 1,
+    margin: 8,
+    backgroundColor: '#EEF0D5',
+    overflow: 'hidden',
+    maxWidth: '46%',
   },
   itemImage: {
     width: '100%',
-    height: 150, // Adjust height as needed
+    height: 190,
   },
   favButton: {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 15,
+    // borderRadius: 15,
     width: 30,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  favIcon: {
-    fontSize: 18,
-    color: '#E53E3E', // Red color for favorite
-  },
-  itemLogo: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    width: 50,
-    height: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Semi-transparent background
-    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
   tagsContainer: {
     position: 'absolute',
-    bottom: 65, // Position above the info container
+    bottom: 65,
     left: 10,
     flexDirection: 'row',
   },
   tag: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+    backgroundColor: '#8D9533',
     borderRadius: 10,
     paddingVertical: 3,
     paddingHorizontal: 8,
@@ -288,13 +286,22 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   itemTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
+    color: '#6B7932'
   },
   itemPrice: {
     fontSize: 13,
-    color: '#555',
+    color: '#252B5C',
+  },
+  
+  backButton: {
+    padding: 8,
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#333',
   },
 });
 

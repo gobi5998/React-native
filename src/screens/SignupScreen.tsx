@@ -5,110 +5,195 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   SafeAreaView,
   StatusBar,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-
-// Import navigation types
 import { StackNavigationProp } from '@react-navigation/stack';
-// Correct the relative path to App.tsx
 import { RootStackParamList } from '../../App';
 
-// Placeholder for logo - replace with your actual logo path
-// const logo = require('../../assets/image/flat.png'); // Adjust the path as needed
-// Placeholder for Google icon - replace or use an icon library
-// const googleIcon = require('../../assets/google-icon.png'); // Example path
+// API base URL - replace with your actual API endpoint
+const API_URL = 'https://7dda-103-186-120-4.ngrok-free.app/api';
 
-// Define Props type for the screen including navigation
 type SignupScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  'Signup' // Current screen name
+  'Signup'
 >;
 
 type Props = {
   navigation: SignupScreenNavigationProp;
 };
 
-// Add navigation prop to the component
 const SignupScreen: React.FC<Props> = ({ navigation }) => {
-  const [isSignup, setIsSignup] = useState(true); // State to toggle between Sign up and Log in
+  const [isSignup, setIsSignup] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [c_password, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Basic password validation checks (can be expanded)
+  // Basic password validation checks
   const isLengthValid = password.length >= 8;
-  // A simple regex for at least one special character
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const passwordsMatch = password === c_password;
+
+  const validateForm = () => {
+    setError('');
+    
+    if (isSignup && !name.trim()) {
+      setError('Name is required');
+      return false;
+    }
+    
+    if (!email.trim()) {
+      setError('Email is required');
+      return false;
+    }
+    
+    if (!password) {
+      setError('Password is required');
+      return false;
+    }
+    
+    if (isSignup) {
+      if (!isLengthValid || !hasSpecialChar) {
+        setError('Password does not meet requirements');
+        return false;
+      }
+      
+      if (!c_password) {
+        setError('Please confirm your password');
+        return false;
+      }
+      
+      if (!passwordsMatch) {
+        setError('Passwords do not match');
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  const handleSignup = async () => {
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          c_password,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+      
+      Alert.alert('Success', 'Account created successfully!');
+      // Navigate to login or directly to PropertyList
+      setIsSignup(false);
+    } catch (error) {
+      setError('An error occurred during signup');
+      console.error('Signup error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+      
+      // Store token or user data in secure storage
+      // Example: await AsyncStorage.setItem('userToken', data.token);
+      
+      // Navigate to PropertyList
+      navigation.navigate('PropertyList');
+    } catch (error) {
+      setError('Invalid email or password');
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGetStarted = () => {
     if (isSignup) {
-      // Handle Sign up logic
-      console.log('Signing up:', { name, email, password }); // Ensure state variables are in scope
-      // Add navigation after successful signup if needed
-      // navigation.navigate('PropertyList');
+      handleSignup();
     } else {
-      // Handle Log in logic
-      console.log('Logging in:', { email, password }); // Ensure state variables are in scope
-      // Navigate to PropertyList after successful login
-      // TODO: Add actual login verification before navigating
-      navigation.navigate('PropertyList');
+      handleLogin();
     }
   };
 
   const handleGoogleSignup = () => {
-    // Handle Google Sign up logic
+    // Implement Google Sign up logic
     console.log('Signing up with Google');
+    // This would typically involve OAuth integration
   };
 
-  // toggleMode might not be needed if using navigateToLogin/Signup
-  // const toggleMode = () => { ... };
-
-  // These functions just toggle the view state within this screen
   const navigateToLogin = () => {
     setIsSignup(false);
-    // Clear fields
     setName('');
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
+    setError('');
   };
 
-   const navigateToSignup = () => {
+  const navigateToSignup = () => {
     setIsSignup(true);
-    // Clear fields
     setName('');
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
+    setError('');
   };
-
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          {/* <Image source={logo} style={styles.logo} resizeMode="contain" /> */}
-          {/* Add Menu Icon if needed */}
-          {/* <TouchableOpacity>
-            <Text style={styles.menuIcon}>☰</Text>
-          </TouchableOpacity> */}
-        </View>
-
-        {/* Title */}
+        
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Sign up or Login</Text>
         </View>
 
-        {/* Content Area */}
         <View style={styles.contentArea}>
           {/* Toggle Buttons */}
           <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[styles.toggleButton, isSignup && styles.activeToggleButton]}
-              // Use navigateToSignup for consistency, although setIsSignup(true) works
               onPress={navigateToSignup}
               disabled={isSignup}
             >
@@ -118,7 +203,6 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.toggleButton, !isSignup && styles.activeToggleButton]}
-               // Use navigateToLogin for consistency
               onPress={navigateToLogin}
               disabled={!isSignup}
             >
@@ -127,6 +211,13 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Error message */}
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
           {/* Input Fields */}
           {isSignup && (
@@ -138,6 +229,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
+                editable={!isLoading}
               />
             </>
           )}
@@ -150,6 +242,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            editable={!isLoading}
           />
 
           <Text style={styles.label}>Password</Text>
@@ -159,7 +252,23 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            editable={!isLoading}
           />
+
+          {/* Confirm Password Field (Only show for Sign up) */}
+          {isSignup && (
+            <>
+              <Text style={styles.label}>Confirm Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm your password"
+                value={c_password}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                editable={!isLoading}
+              />
+            </>
+          )}
 
           {/* Password Requirements (Only show for Sign up) */}
           {isSignup && (
@@ -174,38 +283,54 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
                   {hasSpecialChar ? '✓' : '•'} Must contain one special character
                 </Text>
               </View>
+              {c_password.length > 0 && (
+                <View style={styles.requirementItem}>
+                  <Text style={[styles.requirementText, passwordsMatch && styles.validRequirement]}>
+                    {passwordsMatch ? '✓' : '•'} Passwords must match
+                  </Text>
+                </View>
+              )}
             </View>
           )}
 
           {/* Action Buttons */}
-          <TouchableOpacity style={styles.primaryButton} onPress={handleGetStarted}>
-            <Text style={styles.primaryButtonText}>
-              {isSignup ? 'Get started' : 'Log in'}
-            </Text>
+          <TouchableOpacity 
+            style={[styles.primaryButton, isLoading && styles.disabledButton]} 
+            onPress={handleGetStarted}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                {isSignup ? 'Get started' : 'Log in'}
+              </Text>
+            )}
           </TouchableOpacity>
 
           {isSignup && (
-            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignup}>
-              {/* <Image source={googleIcon} style={styles.googleIcon} /> */}
+            <TouchableOpacity 
+              style={[styles.googleButton, isLoading && styles.disabledButton]} 
+              onPress={handleGoogleSignup}
+              disabled={isLoading}
+            >
               <Text style={styles.googleButtonText}>Sign up with Google</Text>
             </TouchableOpacity>
-           )}
+          )}
 
           {/* Footer Link */}
-           <View style={styles.footer}>
+          <View style={styles.footer}>
             {isSignup ? (
               <>
                 <Text style={styles.footerText}>Already have an account? </Text>
-                {/* This TouchableOpacity calls navigateToLogin (changes state) */}
-                <TouchableOpacity onPress={navigateToLogin}>
+                <TouchableOpacity onPress={navigateToLogin} disabled={isLoading}>
                   <Text style={styles.footerLink}>Log in</Text>
                 </TouchableOpacity>
               </>
             ) : (
               <>
                 <Text style={styles.footerText}>Don't have an account? </Text>
-                 {/* This TouchableOpacity calls navigateToSignup (changes state) */}
-                <TouchableOpacity onPress={navigateToSignup}>
+                <TouchableOpacity onPress={navigateToSignup} disabled={isLoading}>
                   <Text style={styles.footerLink}>Sign up</Text>
                 </TouchableOpacity>
               </>
@@ -220,53 +345,35 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F4F4F4', // Light grey background
+    backgroundColor: '#F4F4F4',
   },
   container: {
     flexGrow: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10, // Adjust as needed for status bar height
-    paddingBottom: 10,
-    backgroundColor: '#FFF', // White header background
-  },
-  logo: {
-    height: 40,
-    width: 100, // Adjust width as needed
-  },
-  menuIcon: {
-    fontSize: 24,
-    color: '#333',
-  },
   titleContainer: {
-    paddingVertical: 20,
+    paddingVertical: 50,
     paddingHorizontal: 20,
-    backgroundColor: '#4FD1C5', // Teal gradient background (simplified)
-    // To create a gradient, you might need react-native-linear-gradient
+    backgroundColor: '#8D9533',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF', // White text
+    color: '#FFF',
   },
   contentArea: {
     flex: 1,
-    backgroundColor: '#F8F9FA', // Slightly off-white content background
+    backgroundColor: '#F8F9FA',
     padding: 25,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: -15, // Overlap the title container slightly
+    marginTop: -15,
   },
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E9ECEF', // Light grey background for toggle
+    backgroundColor: '#E9ECEF',
     borderRadius: 8,
     marginBottom: 25,
-    overflow: 'hidden', // Ensures border radius works with children
+    overflow: 'hidden',
   },
   toggleButton: {
     flex: 1,
@@ -274,9 +381,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeToggleButton: {
-    backgroundColor: '#FFF', // White background for active tab
-    borderRadius: 8, // Match container radius
-    // Add shadow/elevation if needed
+    backgroundColor: '#FFF',
+    borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -285,23 +391,33 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: 16,
-    color: '#6C757D', // Grey text for inactive tab
+    color: '#6C757D',
     fontWeight: '500',
   },
   activeToggleText: {
-    color: '#4FD1C5', // Teal text for active tab
+    color: '#8D9533',
     fontWeight: 'bold',
+  },
+  errorContainer: {
+    backgroundColor: '#FFE8E8',
+    borderRadius: 4,
+    padding: 10,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: '#D32F2F',
+    fontSize: 14,
   },
   label: {
     fontSize: 14,
-    color: '#495057', // Darker grey text
+    color: '#495057',
     marginBottom: 5,
     marginTop: 15,
   },
   input: {
     backgroundColor: '#FFF',
     borderWidth: 1,
-    borderColor: '#CED4DA', // Light grey border
+    borderColor: '#CED4DA',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -319,18 +435,21 @@ const styles = StyleSheet.create({
   },
   requirementText: {
     fontSize: 14,
-    color: '#6C757D', // Grey text for requirements
+    color: '#6C757D',
   },
   validRequirement: {
-    color: '#28A745', // Green text for valid requirements
+    color: '#28A745',
   },
   primaryButton: {
-    backgroundColor: '#4FD1C5', // Teal button
+    backgroundColor: '#8D9533',
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 15,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
   primaryButtonText: {
     color: '#FFF',
@@ -345,13 +464,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'center', // Center content
+    justifyContent: 'center',
     marginBottom: 25,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
   },
   googleButtonText: {
     color: '#495057',
@@ -362,7 +476,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10, // Add some space above the footer
+    marginTop: 10,
   },
   footerText: {
     fontSize: 14,
@@ -370,9 +484,9 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     fontSize: 14,
-    color: '#4FD1C5', // Teal link color
+    color: '#8D9533',
     fontWeight: 'bold',
-    marginLeft: 5, // Space between text and link
+    marginLeft: 5,
   },
 });
 

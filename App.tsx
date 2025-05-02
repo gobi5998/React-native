@@ -9,30 +9,30 @@ import 'react-native-gesture-handler';
  */
 
 import React from 'react';
-import {
-  StatusBar,
-  StyleSheet,
-  View,
-  SafeAreaView,
-} from 'react-native';
-
-// Import navigation components
+import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import 'react-native-gesture-handler';
+
 // Import screens
+import SplashScreen from './src/screens/SplashScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import PropertyListingScreen from './src/screens/PropertyListingScreen';
 import PropertyDetailScreen from './src/screens/PropertyDetailScreen';
+import SearchScreen from './src/screens/SearchScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import { Property } from './src/screens/PropertyListingScreen';
 
 // Define the stack parameter list for type checking
 export type RootStackParamList = {
-  Signup: undefined; // No parameters expected for Signup route
-  PropertyList: undefined; // No parameters expected for PropertyList route
+  Splash: undefined;
+  Signup: undefined;
+  PropertyList: undefined;
   PropertyDetail: {
     property: Property;
   };
+  Search: undefined;
+  Profile: undefined;
 };
 
 // Create the stack navigator
@@ -40,29 +40,21 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App(): React.JSX.Element {
   return (
-    // Wrap the entire app in NavigationContainer
     <NavigationContainer>
-      {/* SafeAreaView might be needed per-screen now, or configure headers */}
-      {/* <SafeAreaView style={styles.safeArea}> */}
-        <StatusBar barStyle={'dark-content'} />
-        {/* Define the stack navigator */}
-        <Stack.Navigator initialRouteName="Signup" screenOptions={{ headerShown: false }}>
-          {/* Define screens in the stack */}
-          <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="PropertyList" component={PropertyListingScreen} />
-          <Stack.Screen name="PropertyDetail" component={PropertyDetailScreen} />
-        </Stack.Navigator>
-      {/* </SafeAreaView> */}
+      <StatusBar barStyle={'dark-content'} />
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Signup" component={SignupScreen} />
+        <Stack.Screen name="PropertyList" component={PropertyListingScreen} />
+        <Stack.Screen name="PropertyDetail" component={PropertyDetailScreen} />
+        <Stack.Screen name="Search" component={SearchScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-// Styles might not be needed here anymore if handled per-screen
-const styles = StyleSheet.create({
-  // safeArea: {
-  //   flex: 1,
-  //   backgroundColor: '#F4F4F4',
-  // },
-});
-
 export default App;
+
+
+
