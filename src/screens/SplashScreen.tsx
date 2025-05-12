@@ -14,9 +14,9 @@ type Props = {
 
 const SplashScreen: React.FC<Props> = ({ navigation }) => {
   useEffect(() => {
-    // Navigate to Signup screen after 2 seconds
+    // Navigate to Home screen after 2 seconds
     const timer = setTimeout(() => {
-      navigation.replace('Signup');
+      navigation.replace('Home');
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -48,3 +48,5 @@ const styles = StyleSheet.create({
 });
 
 export default SplashScreen;
+
+

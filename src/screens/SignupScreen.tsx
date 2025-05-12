@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
+import { widthPercentageToDP as wp,heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 // API base URL - replace with your actual API endpoint
-const API_URL = 'https://7dda-103-186-120-4.ngrok-free.app/api';
+const API_URL = 'https://7c49-103-186-120-4.ngrok-free.app/api';
 
 type SignupScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -160,6 +161,11 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
     // Implement Google Sign up logic
     console.log('Signing up with Google');
     // This would typically involve OAuth integration
+  };
+
+  const handleContinueWithoutLogin = () => {
+    // Navigate to PropertyList without authentication
+    navigation.navigate('PropertyList');
   };
 
   const navigateToLogin = () => {
@@ -318,6 +324,15 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
+          {/* Continue without login button */}
+          <TouchableOpacity 
+            style={styles.skipButton} 
+            onPress={handleContinueWithoutLogin}
+            disabled={isLoading}
+          >
+            <Text style={styles.skipButtonText}>Continue without login</Text>
+          </TouchableOpacity>
+
           {/* Footer Link */}
           <View style={styles.footer}>
             {isSignup ? (
@@ -363,10 +378,10 @@ const styles = StyleSheet.create({
   contentArea: {
     flex: 1,
     backgroundColor: '#F8F9FA',
-    padding: 25,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -15,
+    padding: hp('3.1%'),             
+    borderTopLeftRadius: wp('5.6%'), 
+    borderTopRightRadius: wp('5.6%'),
+    marginTop: hp('-1.8%'),
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -465,12 +480,25 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 25,
+    marginBottom: 15,
   },
   googleButtonText: {
     color: '#495057',
     fontSize: 16,
     fontWeight: '500',
+  },
+  skipButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  skipButtonText: {
+    color: '#6C757D',
+    fontSize: 16,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
   footer: {
     flexDirection: 'row',

@@ -8,111 +8,79 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
-  ScrollView,
-  RefreshControl,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar from '../components/BottomNavBar';
-// Import a different icon set
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useFavorites } from '../context/FavoritesContext';
+import { Property } from '../types';
+import{ widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-// Export the Property interface
-export interface Property {
-  id: string;
-  title: string;
-  price: string;
-  tags: string[];
-  imageUrl: ReturnType<typeof require>;
-  isFavorite: boolean;
-}
-
-// Placeholder data - Replace with your actual data source
 const PROPERTIES_DATA: Property[] = [
   {
     id: '1',
     title: 'Godrej Prima, Okhla...',
+    location: 'Okhla',
     price: '₹ 3.59 Cr. onwards',
     tags: ['Flats', 'New'],
     imageUrl: require('../../assets/image/flat.png'),
     isFavorite: false,
+    developer: 'Godrej',
   },
   {
     id: '2',
     title: 'Godrej River Royale',
+    location: 'Noida',
     price: '₹ 2.2 Cr* Onwards',
     tags: ['Flats', 'New'],
     imageUrl: require('../../assets/image/flat.png'),
     isFavorite: true,
+    developer: 'Godrej',
   },
   {
     id: '3',
-    title: 'Godrej Park World',
-    price: '₹ 71 Lacs* Onwards',
-    tags: ['Flats', 'New'],
-    imageUrl: require('../../assets/image/flat.png'),
-    isFavorite: true,
-  },
-   {
-    id: '4',
-    title: 'Godrej Hillside 3',
-    price: '₹ 73.50 Lacs* Onwards',
+    title: 'Godrej Prima, Okhla...',
+    location: 'Okhla',
+    price: '₹ 3.59 Cr. onwards',
     tags: ['Flats', 'New'],
     imageUrl: require('../../assets/image/flat.png'),
     isFavorite: false,
+    developer: 'Godrej',
   },
-   {
-    id: '5',
-    title: 'Godrej Greenfront',
-    price: '₹ 1.14 Cr* Onwards',
+  {
+    id: '4',
+    title: 'Godrej River Royale',
+    location: 'Noida',
+    price: '₹ 2.2 Cr* Onwards',
     tags: ['Flats', 'New'],
     imageUrl: require('../../assets/image/flat.png'),
     isFavorite: true,
+    developer: 'Godrej',
   },
-   {
+  {
+    id: '5',
+    title: 'Godrej Prima, Okhla...',
+    location: 'Okhla',
+    price: '₹ 3.59 Cr. onwards',
+    tags: ['Flats', 'New'],
+    imageUrl: require('../../assets/image/flat.png'),
+    isFavorite: false,
+    developer: 'Godrej',
+  },
+  {
     id: '6',
-    title: 'Godrej Evergreen...',
-    price: '₹ 45 Lacs* Onwards',
+    title: 'Godrej River Royale',
+    location: 'Noida',
+    price: '₹ 2.2 Cr* Onwards',
     tags: ['Flats', 'New'],
-    imageUrl: require('../../assets/image/flat.png'), // Reused flat.png, replace if needed
+    imageUrl: require('../../assets/image/flat.png'),
     isFavorite: true,
+    developer: 'Godrej',
   },
-  {
-    id: '7',
-    title: 'Godrej New thing...',
-    price: '₹ 50 Lacs* Onwards',
-    tags: ['Flats', 'New'],
-    imageUrl: require('../../assets/image/flat.png'), // Reused flat.png, replace if needed
-    isFavorite: true,
-  },
-  {
-    id: '8',
-    title: 'Godrej Newworld...',
-    price: '₹ 55 Lacs* Onwards',
-    tags: ['Flats', 'New'],
-    imageUrl: require('../../assets/image/flat.png'), // Reused flat.png, replace if needed
-    isFavorite: true,
-  },
-  {
-    id: '9',
-    title: 'Godrej Everthing...',
-    price: '₹ 80 Lacs* Onwards',
-    tags: ['Flats', 'New'],
-    imageUrl: require('../../assets/image/flat.png'), // Reused flat.png, replace if needed
-    isFavorite: true,
-  },
-  {
-    id: '10',
-    title: 'Godrej Nothing...',
-    price: '₹ 34 Lacs* Onwards',
-    tags: ['Flats', 'New'],
-    imageUrl: require('../../assets/image/flat.png'), // Reused flat.png, replace if needed
-    isFavorite: true,
-  },
-  // Add more property objects here
+ 
 ];
 
-// Update PropertyItemProps to include navigation
 type PropertyItemProps = {
   item: Property;
   onPress: () => void;
@@ -120,35 +88,42 @@ type PropertyItemProps = {
 };
 
 const PropertyItem: React.FC<PropertyItemProps> = ({ item, onPress, onToggleFavorite }) => {
+  const { isFavorite, addToFavorites, removeFromFavorites } = useFavorites();
+  const isItemFavorite = isFavorite(item.id);
+
+  const handleToggleFavorite = (e: any) => {
+    e.stopPropagation();
+    if (isItemFavorite) {
+      removeFromFavorites(item.id);
+    } else {
+      addToFavorites(item);
+    }
+    onToggleFavorite(item.id);
+  };
+
   return (
     <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
       <Image source={item.imageUrl} style={styles.itemImage} />
-      
-      {/* Use MaterialCommunityIcons instead */}
-      <TouchableOpacity 
-        style={styles.favButton} 
-        onPress={(e) => {
-          e.stopPropagation();
-          onToggleFavorite(item.id);
-        }}
+
+      <TouchableOpacity
+        style={styles.favButton}
+        onPress={handleToggleFavorite}
       >
-        {item.isFavorite ? (
-          <MaterialCommunityIcons name="heart" size={18} color="#E74C3C" />
-        ) : (
-          <MaterialCommunityIcons name="heart-outline" size={18} color="#666666" />
-        )}
+        <Ionicons 
+          name={isItemFavorite ? "heart" : "heart-outline"} 
+          size={24} 
+          color={isItemFavorite ? "#8D9533" : "#E3E3E3"} 
+        />
       </TouchableOpacity>
-      
-      {/* Tags */}
+
       <View style={styles.tagsContainer}>
-        {item.tags.map((tag: string, index: number) => (
+        {item.tags.map((tag, index) => (
           <View key={index} style={styles.tag}>
             <Text style={styles.tagText}>{tag}</Text>
           </View>
         ))}
       </View>
-      
-      {/* Info */}
+
       <View style={styles.infoContainer}>
         <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.itemPrice}>{item.price}</Text>
@@ -157,34 +132,27 @@ const PropertyItem: React.FC<PropertyItemProps> = ({ item, onPress, onToggleFavo
   );
 };
 
-type PropertyListingScreenProps = NativeStackScreenProps<RootStackParamList, 'PropertyList'>;
+type PropertyListingScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, 'PropertyList'>;
+};
 
 const PropertyListingScreen: React.FC<PropertyListingScreenProps> = ({ navigation }) => {
-  console.log('Rendering PropertyListingScreen');
-  const [refreshing, setRefreshing] = useState(false);
   const [properties, setProperties] = useState<Property[]>(PROPERTIES_DATA);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isFavorite } = useFavorites();
 
-  console.log('Properties data:', properties);
-
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    // Add your refresh logic here
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+  const handleLoginPress = () => {
+    navigation.navigate('Signup');
+  };
 
   const handlePropertyPress = (property: Property) => {
     navigation.navigate('PropertyDetail', { property });
   };
 
   const handleToggleFavorite = (id: string) => {
-    console.log('Toggle favorite for property ID:', id);
-    setProperties(prevProperties => 
-      prevProperties.map(property => 
-        property.id === id 
-          ? { ...property, isFavorite: !property.isFavorite } 
-          : property
+    setProperties(prev =>
+      prev.map(p =>
+        p.id === id ? { ...p, isFavorite: isFavorite(id) } : p
       )
     );
   };
@@ -194,19 +162,17 @@ const PropertyListingScreen: React.FC<PropertyListingScreenProps> = ({ navigatio
       <StatusBar barStyle="dark-content" />
       <View style={styles.container}>
         <View style={styles.header}>
-         <TouchableOpacity
-                     onPress={() => navigation.goBack()}
-                     style={styles.backButton}
-                   >
-                     <Text style={styles.backButtonText}> ← Back</Text>
-                   </TouchableOpacity>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={20} color="#333" />
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
         </View>
-        
+
         <FlatList
           data={properties}
           renderItem={({ item }) => (
-            <PropertyItem 
-              item={item} 
+            <PropertyItem
+              item={item}
               onPress={() => handlePropertyPress(item)}
               onToggleFavorite={handleToggleFavorite}
             />
@@ -216,7 +182,11 @@ const PropertyListingScreen: React.FC<PropertyListingScreenProps> = ({ navigatio
           contentContainerStyle={styles.listContainer}
         />
       </View>
-      <BottomNavBar activeScreen="PropertyList" />
+      <BottomNavBar 
+        activeScreen="PropertyList" 
+        isLoggedIn={isLoggedIn}
+        onLoginPress={handleLoginPress}
+      />
     </SafeAreaView>
   );
 };
@@ -230,56 +200,67 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 16,
+    padding: hp('2%'),
+    // paddingTop: 50,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 16,
     color: '#333',
+    marginLeft: 5,
   },
   listContainer: {
     padding: 8,
+    paddingBottom: 76,
   },
   itemContainer: {
     flex: 1,
     margin: 8,
     backgroundColor: '#EEF0D5',
+    // borderRadius: 6,
     overflow: 'hidden',
-    maxWidth: '46%',
+    maxWidth: '50%',
   },
   itemImage: {
     width: '100%',
     height: 190,
+    resizeMode: 'cover',
+    // borderTopLeftRadius: 6,
+    // borderTopRightRadius: 6,
   },
   favButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    // borderRadius: 15,
-    width: 30,
-    height: 30,
+    top: hp('1.2%'),         
+    right: wp('2.8%'),       
+    borderRadius: wp('4.2%'), 
+    width: wp('8.3%'),        
+    height: hp('3.7%'),  
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
   tagsContainer: {
     position: 'absolute',
-    bottom: 65,
-    left: 10,
+    bottom: hp('9%'), 
+    left: wp('2.5%'),  
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
   },
   tag: {
     backgroundColor: '#8D9533',
-    borderRadius: 10,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    marginRight: 5,
+    borderRadius: wp('3.3%'),       
+    paddingVertical: hp('0.5%'),    
+    paddingHorizontal: wp('2.8%'),  
+    marginBottom: hp('0.5%'),
   },
   tagText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   infoContainer: {
@@ -289,20 +270,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#6B7932'
+    color: '#6B7932',
   },
   itemPrice: {
     fontSize: 13,
     color: '#252B5C',
   },
-  
-  backButton: {
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#333',
-  },
 });
 
-export default PropertyListingScreen; 
+export default PropertyListingScreen;
